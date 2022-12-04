@@ -1,8 +1,15 @@
 from arsenal import colors
-from arsenal.iterextras import window, count
+from arsenal.datastructures import LocatorMaxHeap
+#from arsenal.iterextras import window
 from collections import Counter, defaultdict
 from itertools import product
-from IPython.display import display
+import random
+
+
+def window(xs, k):
+    assert k == 2
+    xs = list(xs)
+    return zip(xs, xs[1:])
 
 
 verbosity = 0
@@ -10,6 +17,7 @@ throw = True
 
 
 class Token:
+    __slots__ = ('x','i','prev','next')
     def __init__(self, x, i):
         self.i = i
         self.x = x
@@ -53,16 +61,47 @@ def merge(xs, pair):
     return ys
 
 
+class MyList:
+    def __init__(self):
+        self.xs = []
+        self.loc = {}
+        self.n = 0
+    def append(self, x):
+        i = len(self.xs)
+        assert x not in self.loc
+        self.xs.append(x)
+        self.loc[x] = i
+        self.n += 1
+        return self.n
+    def remove(self, x):
+        if x in self.loc:
+            i = self.loc.pop(x)
+            self.xs[i] = None
+            self.n -= 1
+        return self.n
+    def __len__(self):
+        return self.n
+    def __iter__(self):
+        for x in self.xs:
+            if x is not None:
+                yield x
+    def __eq__(self, other):
+        return list(self) == list(other)
+    def __repr__(self):
+        return f'MyList({self.xs})'
+
+
 class FastBPE:
 
     def __init__(self, xs):
         assert len(xs) > 0
-        node = {}
         root = Token(xs[0], 0)
+        ys = [root]
         prev = root
         curr = prev
         for t in range(1, len(xs)):
             curr = Token(xs[t], t)
+            ys.append(curr)
             curr.prev, prev = prev, curr
         next = None
         while curr is not None:
@@ -71,26 +110,13 @@ class FastBPE:
         self.root = root
 
         self.n = len(xs)
-#        c = Counter()
-        pos = defaultdict(list)
-        for (x,y) in window(self, 2):
-            pos[x.x, y.x].append(x)
-#            c[x.x, y.x] += 1
-#        self.c = c
-        self.pos = pos
-
-    @property
-    def c(self):
-        c = Counter()
-        for k,v in self.pos.items():
-            c[k] += len(v)
-        return c
+        self.heap = LocatorMaxHeap()
+        self.pos = defaultdict(MyList)
+        for (x,y) in window(ys, 2):
+            self.heap[x.x, y.x] = self.pos[x.x, y.x].append(x)
 
     def top_pair(self):
-        return self.c.most_common()[0][0]
-
-    def reset(self):
-        return FastBPE(self.xs)
+        return self.heap.peek()[0]
 
     def __repr__(self):
         return repr(list(self))
@@ -110,17 +136,12 @@ class FastBPE:
         blocklist = set()
         ts = self.pos.pop(pair, ())
 
- #       print(colors.yellow % 'merge:', pair, ts)
+        self.heap[pair] = 0
 
         for t in ts:
             old = t
 
-#            if (t.x, t.next.x) != pair:
-#                print(colors.light.red % 'drop', (t.x, t.next.x))
-#                continue
             assert (t.x, t.next.x) == pair, (t.x, t.next.x)
-
-            self.n -= 1
 
             if t in blocklist:
                 if verbosity > 0: print('blocked:', t)
@@ -129,16 +150,14 @@ class FastBPE:
             blocklist.add(t.next)
 
             new = Token((t.x, t.next.x), (t.i, t.next.i))
+            self.n -= 2
             self.n += 1
 
             if old.prev is not None:
                 prev = old.prev
 
-                try:
-                    self.pos[prev.x, old.x].remove(prev)
-                except ValueError:
-                    pass
-                self.pos[prev.x, new.x].append(t.prev)
+                self.heap[prev.x, old.x] = self.pos[prev.x, old.x].remove(prev)
+                self.heap[prev.x, new.x] = self.pos[prev.x, new.x].append(t.prev)
 
             else:
                 self.root = new
@@ -147,12 +166,8 @@ class FastBPE:
             if old.next.next is not None:
                 after = old.next.next
 
-                try:
-                    self.pos[old.next.x, after.x].remove(old.next)
-                except ValueError:
-                    pass
-
-                self.pos[new.x, after.x].append(new)
+                self.heap[old.next.x, after.x] = self.pos[old.next.x, after.x].remove(old.next)
+                self.heap[new.x, after.x] = self.pos[new.x, after.x].append(new)
 
             if old.prev is not None:
                 prev = old.prev
@@ -169,13 +184,16 @@ class FastBPE:
 
             old.prev = None
             old.next = None
+
         return self
 
-    def fresh_pos(self):
-        pos = defaultdict(list)
+    def check_pos(self):
+        pos = defaultdict(MyList)
         for (x,y) in window(self, 2):
             pos[x.x, y.x].append(x)
-        return pos
+
+        check({k: v for k,v in self.pos.items() if len(v)},
+              {k: v for k,v in pos.items() if len(v)})
 
     def to_graph(self):
         from dyna.graphs import LabeledGraph
@@ -226,56 +244,97 @@ def _test(xs):
     fast = FastBPE(xs)
     slow = SlowBPE(xs)
 
-    for t in count():
+    for t in range(len(xs)):
 
         if len(fast.xs) <= 1: break
 
-        #fast = fast.reset()
+        check(fast.pos[fast.top_pair()].n, len(slow.pos[slow.top_pair()]))
 
-        pair, _ = fast.c.most_common()[0]
+        pair = random.choice(list(fast.pos))
 
         if verbosity > 0:
             print()
             print(t, pair, fast.c[pair], fast.pos[pair])
 
         fast.merge(pair)
-
         slow.merge(pair)
 
         check(fast.xs, slow.xs)
-#        check(fast.n, slow.n)
+        check(fast.n, slow.n)
 
-        check({k:v for k,v in fast.pos.items() if len(v)},
-              {k:v for k,v in fast.fresh_pos().items() if len(v)})
+        fast.check_pos()
 
-        check({k:v for k,v in fast.c.items() if v != 0},
-              {k:v for k,v in slow.c.items() if v != 0})
-
-        #print(fast.c - slow.c)
-        #print(self.c - fast.c)
+        check({k: v.n for k,v in fast.pos.items() if v.n != 0},
+              {k: v for k,v in slow.c.items() if v != 0})
 
 
 def test_benchmark():
-    xs = open('/home/timv/Downloads/wikitext-2-v1/wikitext-2/wiki.train.tokens').read()[:10000]
+    import numpy as np
+    import pylab as pl
+    from arsenal import timers, iterview
+
+    corpus = open('/home/timv/Downloads/wikitext-2-v1/wikitext-2/wiki.train.tokens').read()
 
     T = timers()
 
-    M = 1000
-    with T['fast']:
-        fast = FastBPE(xs)
-        for t in range(M):
-            pair = fast.top_pair()
-            fast.merge(pair)
+    M = 2000
 
-    with T['slow']:
-        slow = SlowBPE(xs)
-        for t in range(M):
-            pair = slow.top_pair()
-            slow.merge(pair)
+#    for N in iterview(np.linspace(2**8, 2**15, 10).astype(int)):
+    for i in range(8, 16):
+        N = 2**i
+#        print(N, int(np.log2(N)))
+
+        xs = corpus[:N]
+
+        with T['fast'](N=N):
+            fast = FastBPE(xs)
+            for _ in range(M):
+                if fast.n <= 1: break
+                fast.merge(fast.top_pair())
+
+        with T['slow'](N=N):
+            slow = SlowBPE(xs)
+            for _ in range(M):
+                if slow.n <= 1: break
+                slow.merge(slow.top_pair())
+
+    #check(fast.n, slow.n)
 
     T.compare()
+
+    T.plot_feature('N', show_curve=True)
+
+    pl.show()
+
+
+def test_speed():
+    from arsenal import timeit
+    from arsenal import iterview
+
+    corpus = open('/home/timv/Downloads/wikitext-2-v1/wikitext-2/wiki.train.tokens').read()
+    xs = corpus#[:2**20]
+
+    #M = 1000
+    M = len(xs)
+
+    print('corpus size', len(xs))
+
+    with timeit('init'):
+        fast = FastBPE(xs)
+
+    print('started:', fast.n)
+    start_size = fast.n
+
+    with timeit('main'):
+        for _ in iterview(range(M)):
+            if fast.n <= 1: break
+            fast.merge(fast.top_pair())
+
+    print(f'compressed: {start_size} {colors.rightarrow} {fast.n} ({start_size/fast.n:.2}x smaller)')
 
 
 if __name__ == '__main__':
     from arsenal import testing_framework
     testing_framework(globals())
+
+#    test_speed()
