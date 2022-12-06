@@ -1,8 +1,11 @@
 import numpy as np
 import pylab as pl
 import random
+
+# https://github.com/timvieira/arsenal
 from arsenal import colors, iterview, timers, timeit
 from arsenal.datastructures import LocatorMaxHeap
+
 from collections import Counter, defaultdict
 from itertools import product
 from time import time
