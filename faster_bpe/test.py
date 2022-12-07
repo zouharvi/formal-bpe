@@ -4,7 +4,7 @@ import random
 from itertools import product
 from time import time
 from arsenal import colors, timers, timeit
-from model import FastBPE, SlowBPE
+from model import FasterBPE, SlowBPE
 
 from utils import VERBOSITY, check
 
@@ -32,7 +32,7 @@ def _test_correctness(xs):
         print(colors.light.yellow % colors.line(80))
         print(colors.light.yellow % f'# {xs}')
 
-    fast = FastBPE(xs)
+    fast = FasterBPE(xs)
     slow = SlowBPE(xs)
 
     for t in range(len(xs)):
@@ -71,7 +71,7 @@ def test_benchmark():
         xs = corpus[:N]
 
         with T['fast'](N=N):
-            fast = FastBPE(xs)
+            fast = FasterBPE(xs)
             for _ in range(M):
                 if fast.n <= 1:
                     break
@@ -102,7 +102,7 @@ def test_speed():
     print('corpus size', len(xs))
 
     with timeit('init'):
-        fast = FastBPE(xs)
+        fast = FasterBPE(xs)
 
     print('started:', fast.n)
     start_size = fast.n

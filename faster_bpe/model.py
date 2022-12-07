@@ -1,9 +1,10 @@
 
 from arsenal.datastructures import LocatorMaxHeap
 from collections import defaultdict
-from utils import VERBOSITY, check
+from .utils import VERBOSITY, check
 
 VERBOSITY = 0
+
 
 def pairs(xs):
     return zip(xs, xs[1:])
@@ -93,8 +94,7 @@ class MyList:
         return f'MyList({self.xs})'
 
 
-class FastBPE:
-
+class FasterBPE:
     def __init__(self, xs):
         assert len(xs) > 0
         root = Token(xs[0])
@@ -174,8 +174,10 @@ class FastBPE:
             if old.next.next is not None:
                 after = old.next.next
 
-                self.heap[old.next.x, after.x] = self.pos[old.next.x, after.x].remove(old.next)
-                self.heap[new.x, after.x] = self.pos[new.x, after.x].append(new)
+                self.heap[old.next.x, after.x] = self.pos[old.next.x,
+                                                          after.x].remove(old.next)
+                self.heap[new.x, after.x] = self.pos[new.x,
+                                                     after.x].append(new)
 
             if old.prev is not None:
                 prev = old.prev
@@ -204,4 +206,3 @@ class FastBPE:
             {k: v for k, v in self.pos.items() if len(v)},
             {k: v for k, v in pos.items() if len(v)}
         )
-
