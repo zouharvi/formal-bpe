@@ -59,7 +59,7 @@ def _test_correctness(xs):
 
 def test_benchmark():
 
-    corpus = open("data/CCrawl.de-en/train.tok.en").read()
+    corpus = open("data/CCrawl.de-en/train.tok.all").read()
     T = timers()
     M = 2000
 
@@ -92,7 +92,7 @@ def test_benchmark():
 
 
 def test_speed():
-    corpus = open("data/CCrawl.de-en/train.tok.en").read()
+    corpus = open("data/CCrawl.de-en/train.tok.all").read()
 
     xs = corpus  # [:2**20]
 
