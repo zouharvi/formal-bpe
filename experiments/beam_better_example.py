@@ -9,7 +9,7 @@ from arsenal.iterextras import window, take
 from faster_bpe.model import FasterBPE, SlowBPE, merge
 
 args = argparse.ArgumentParser()
-args.add_argument("--example-length", type=int, default=7)
+args.add_argument("--example-length", type=int, default=8)
 args.add_argument("--alphabet-size", type=int, default=2)
 args = args.parse_args()
 
@@ -46,6 +46,14 @@ def beam_search(xs, T, B):
         beam = sorted(bs, key=len)[:B]
     return min(beam, key=len)
 
+def join_pretty(x):
+    if type(x) is list:
+        return "".join([join_pretty(i) for i in x])
+    if type(x) is str:
+        return x
+    if type(x) is tuple:
+        return f"({join_pretty(x[0])}{join_pretty(x[1])})"
+
 for example in map(
     ''.join,
     itertools.product(string.ascii_lowercase[:args.alphabet_size], repeat=args.example_length)
@@ -68,9 +76,14 @@ for example in map(
     bpe_beam = FasterBPE(example)
     result_beam = beam_search(example, 2, B=2)
 
+    result_greedy_pretty = join_pretty(result_greedy)
+    result_beam_pretty = join_pretty(result_beam)
+    if "(aa)" in result_greedy_pretty:
+        continue
+
     if len(result_greedy) > len(result_beam):
         print("Example:    ", example)
-        print(f"Greedy:      ({len(result_greedy)})", result_greedy)
-        print(f"Beam search: ({len(result_beam)})", result_beam)
+        print(f"Greedy:      ({len(result_greedy)})", result_greedy_pretty)
+        print(f"Beam search: ({len(result_beam)})", result_beam_pretty)
         print("====")
     # print(len(result_greedy), len(result_beam))
