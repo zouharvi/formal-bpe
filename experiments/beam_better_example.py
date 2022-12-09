@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
 
+raise Exception("This part has not yet been updated to the object-oriented design")
+
 from collections import Counter
 import itertools
 import string
 import argparse
 import orderedset
-from arsenal.iterextras import window, take
-from faster_bpe.model import FasterBPE, SlowBPE, merge
+from arsenal.iterextras import take
+from faster_bpe.model import FasterBPE
+from faster_bpe.model_slow import SlowBPE
+from faster_bpe.utils import pairs_in_list, pretty_seq
 
 args = argparse.ArgumentParser()
 args.add_argument("--example-length", type=int, default=8)
 args.add_argument("--alphabet-size", type=int, default=2)
 args = args.parse_args()
 
-def _reference(xs):
+def find_max_and_merge(xs):
     if len(xs) <= 1: return xs
-    c = Counter(window(xs, 2))
+    c = Counter(pairs_in_list(xs))
     pair, _ = c.most_common()[0]
-    return merge(xs, pair)
+    return SlowBPE.apply_merge_slow(xs, pair)
 
 def greedy(xs, T=None):
     old = xs
@@ -25,34 +29,27 @@ def greedy(xs, T=None):
     while True:
         t += 1
         if T is not None and t > T: break
-        new = _reference(old)
+        new = find_max_and_merge(old)
         if old == new: break
         old = new
     return old
 
-def possible_splits(xs):
+def possible_splits_gen(xs):
     if len(xs) <= 1:
         yield xs
-        return    
-    c = Counter(window(xs, 2))
+        return
+
+    c = Counter(pairs_in_list(xs))
     for pair in sorted(c, key=c.__getitem__, reverse=True):
-#        if c[pair] <= 1: continue   # drop pairs with count <= 1
-        yield merge(xs, pair)
+        yield SlowBPE.apply_merge_slow(xs, pair)
 
 def beam_search(xs, T, B):
     beam = [xs]
     for t in range(T):
-        bs = beam + [ys for xs in beam for ys in take(B, possible_splits(xs))]
+        bs = beam + [ys for xs in beam for ys in take(B, possible_splits_gen(xs))]
         beam = sorted(bs, key=len)[:B]
     return min(beam, key=len)
 
-def join_pretty(x):
-    if type(x) is list:
-        return "".join([join_pretty(i) for i in x])
-    if type(x) is str:
-        return x
-    if type(x) is tuple:
-        return f"({join_pretty(x[0])}{join_pretty(x[1])})"
 
 for example in map(
     ''.join,
@@ -76,8 +73,8 @@ for example in map(
     bpe_beam = FasterBPE(example)
     result_beam = beam_search(example, 2, B=2)
 
-    result_greedy_pretty = join_pretty(result_greedy)
-    result_beam_pretty = join_pretty(result_beam)
+    result_greedy_pretty = pretty_seq(result_greedy)
+    result_beam_pretty = pretty_seq(result_beam)
     if "(aa)" in result_greedy_pretty:
         continue
 

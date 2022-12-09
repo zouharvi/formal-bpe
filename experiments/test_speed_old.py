@@ -4,11 +4,10 @@ import random
 from itertools import product
 from time import time
 from arsenal import colors, timers, timeit
-from model import FasterBPE, SlowBPE
+from faster_bpe.model import FasterBPE
+from faster_bpe.model_slow import SlowBPE
+from faster_bpe.utils import VERBOSITY, check
 
-from utils import VERBOSITY, check
-
-VERBOSITY = 0
 def test_correctness():
     for xs in [
         'a',
@@ -26,17 +25,15 @@ def test_correctness():
 
 
 def _test_correctness(xs):
-
     if VERBOSITY > 0:
         print()
         print(colors.light.yellow % colors.line(80))
         print(colors.light.yellow % f'# {xs}')
 
     fast = FasterBPE(xs)
-    slow = SlowBPE(xs)
+    slow = SlowBPE()
 
     for t in range(len(xs)):
-
         if len(fast.xs) <= 1:
             break
 
@@ -58,12 +55,10 @@ def _test_correctness(xs):
 
 
 def test_benchmark():
-
     corpus = open("data/CCrawl.de-en/train.tok.all").read()
     T = timers()
     M = 2000
 
-#    for N in iterview(np.linspace(2**8, 2**15, 10).astype(int)):
     for i in range(8, 16):
         N = 2**i
         print(N, int(np.log2(N)))
@@ -92,11 +87,7 @@ def test_benchmark():
 
 
 def test_speed():
-    corpus = open("data/CCrawl.de-en/train.tok.all").read()
-
-    xs = corpus  # [:2**20]
-
-    #M = 1000
+    xs = open("data/CCrawl.de-en/train.tok.all").read()
     M = len(xs)
 
     print('corpus size', len(xs))
