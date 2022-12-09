@@ -56,7 +56,7 @@ class UniqueList:
 
 def pretty_seq(x):
     if type(x) is list:
-        return "".join([pretty_seq(i) for i in x])
+        return " ".join([pretty_seq(i) for i in x])
     if type(x) is str:
         return x
     if type(x) is tuple:

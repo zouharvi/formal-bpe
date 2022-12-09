@@ -31,3 +31,9 @@ for example in map(
         print(f"{example}")
         print(len(result_slow), "|||", len(result_faster))
         print(result_slow, "|||", result_faster)
+
+
+example="The lazy brown fox jumped over the quick frog. The brown jumper with the froggo suits me well."
+bpe_slow = SlowBPE(fix_overlap=False, tokenize=False)
+result_slow = bpe_slow.fit_greedy(example, 20)
+print(result_slow)
