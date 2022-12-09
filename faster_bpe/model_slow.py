@@ -3,7 +3,9 @@ from faster_bpe.utils import pairs_in_list, flat_seq, pretty_seq
 
 
 class SlowBPE:
-    def __init__(self):
+    def __init__(self, fix_overlap=False):
+        if fix_overlap:
+            self.get_pair_counts = self.get_pair_counts_fix_overlap
         pass
 
     @staticmethod
@@ -23,16 +25,24 @@ class SlowBPE:
     @staticmethod
     def get_pair_counts(xs):
         pairs = defaultdict(int)
-        prev_suffix = None
+        for (x, y) in pairs_in_list(xs):
+            pairs[x, y] += 1
+
+        return pairs
+
+    @staticmethod
+    def get_pair_counts_fix_overlap(xs):
+        pairs = defaultdict(int)
+        prev_pair = None
         for (x, y) in pairs_in_list(xs):
             # increment only if the prev suffix does not match our prefix
             # otherwise wrong estimate on `aaa`
-            if x != prev_suffix:
+            if (x,y) != prev_pair:
                 pairs[x, y] += 1
-                prev_suffix = y
+                prev_pair = (x, y)
             else:
                 # make sure to clear it so that for `aaaa` we count it twice
-                prev_suffix = None
+                prev_pair = None
 
         return pairs
 

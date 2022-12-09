@@ -58,7 +58,6 @@ class FasterBPE:
             blocklist.add(t.next)
 
             new = Token((t.x, t.next.x))
-            self.n -= 1
 
             if old.prev is not None:
                 prev = old.prev

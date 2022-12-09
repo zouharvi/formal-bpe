@@ -19,23 +19,15 @@ for example in map(
     ''.join,
     itertools.product(string.ascii_lowercase[:args.alphabet_size], repeat=args.example_length)
 ):
-# for example in [
-#     'abc',
-#     'aaaaa',
-#     'eaaaabdaaabc',
-#     'aaaabdaaab',
-# ]:
-    # the letters must be sorted otherwise discard
-    # this saves args.alphabet_size times the work
-    example_letters = list(orderedset.OrderedSet(example))
-
-    print(f"\n{example}")
-    bpe_slow = SlowBPE()
+    bpe_slow = SlowBPE(fix_overlap=False)
     result_slow = bpe_slow.fit_greedy(example, 2)
 
     bpe_faster = FasterBPE()
     result_faster = bpe_faster.fit_greedy(example, 2)
 
-    print(result_slow, "|||", result_faster)
+    assert len(result_slow) <= len(result_faster)
 
-    assert len(result_slow) == len(result_faster)
+    if len(result_slow) != len(result_faster):
+        print(f"{example}")
+        print(len(result_slow), "|||", len(result_faster))
+        print(result_slow, "|||", result_faster)
