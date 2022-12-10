@@ -4,7 +4,7 @@ import itertools
 import string
 import argparse
 from faster_bpe.model_slow import SlowBPE
-from faster_bpe.utils import pretty_seq
+from faster_bpe.utils import debug_flat_seq
 
 args = argparse.ArgumentParser()
 args.add_argument("--example-length", type=int, default=9)

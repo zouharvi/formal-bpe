@@ -1,53 +1,53 @@
 from collections import defaultdict
-from faster_bpe.utils import pairs_in_list, flat_seq, pretty_seq
-
+from faster_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
+from typing import Dict, List, Tuple
 
 class SlowBPE:
     def __init__(self, fix_overlap=False, tokenize=False):
         if fix_overlap:
-            self.get_pair_counts = self.get_pair_counts_fix_overlap
+            self.get_word_pair_counts = self.get_word_pair_counts_fix_overlap
 
         self.tokenize = tokenize
 
     @staticmethod
-    def apply_merge_slow(xs, pair):
-        ys = []
-        for xs_word in xs:
+    def apply_merge_slow(tokens_freqs, pair):
+        for token_id, (token, token_freq) in tokens_freqs.items():
             ys_word = []
             i = 0
-            N = len(xs_word)
+            N = len(token)
             while i < N:
-                if i < N - 1 and (xs_word[i], xs_word[i + 1]) == pair:
+                if i < N - 1 and (token[i], token[i + 1]) == pair:
                     ys_word.append(pair)
                     i += 2
                 else:
-                    ys_word.append(xs_word[i])
+                    ys_word.append(token[i])
                     i += 1
-            ys.append(ys_word)
-        return ys
+            tokens_freqs[token_id] = [ys_word, token_freq]
+        return tokens_freqs
 
     @staticmethod
-    def get_pair_counts(xs):
+    def get_word_pair_counts(tokens_freqs):
         pairs = defaultdict(int)
-        for xs_word in xs:
-            for (x, y) in pairs_in_list(xs_word):
-                pairs[x, y] += 1
+        for token, token_freq in tokens_freqs.values():
+            for (x, y) in pairs_in_list(token):
+                pairs[x, y] += token_freq
 
         return pairs
 
     @staticmethod
-    def get_pair_counts_fix_overlap(xs):
+    def get_word_pair_counts_fix_overlap(tokens_freqs):
         pairs = defaultdict(int)
         prev_pair = None
-        for (x, y) in pairs_in_list(xs):
-            # increment only if the prev suffix does not match our prefix
-            # otherwise wrong estimate on `aaa`
-            if (x,y) != prev_pair:
-                pairs[x, y] += 1
-                prev_pair = (x, y)
-            else:
-                # make sure to clear it so that for `aaaa` we count it twice
-                prev_pair = None
+        for token, token_freq in tokens_freqs.values():
+            for (x, y) in pairs_in_list(token):
+                # increment only if the prev suffix does not match our prefix
+                # otherwise wrong estimate on `aaa`
+                if (x,y) != prev_pair:
+                    pairs[x, y] += token_freq
+                    prev_pair = (x, y)
+                else:
+                    # make sure to clear it so that for `aaaa` we count it twice
+                    prev_pair = None
 
         return pairs
 
@@ -55,18 +55,56 @@ class SlowBPE:
     def top_pair(pairs):
         return max(pairs, key=pairs.__getitem__)
 
-    def fit_greedy(self, xs, T):
-        # treat everything as one word
+    @staticmethod
+    def token_dictionary(tokens) -> Tuple[List, Dict[int, Tuple[str, int]]]:
+        tokens_dict = {}
+        tokens_freqs = {}
+        tokens_ids = []
+        # first id is 1 (reserve 0 for something else)
+        i = 1
+        for line in tokens:
+            token_ids_line = []
+            for token in line:
+                if token not in tokens_dict:
+                    tokens_dict[token] = i
+                    tokens_freqs[i] = [token, 0]
+                    token_id = i
+                    i += 1
+                else:
+                    token_id = tokens_dict[token]
+                
+                tokens_freqs[token_id][1] += 1
+                token_ids_line.append(token_id)
+
+            tokens_ids.append(token_ids_line)
+
+        # TODO: fortify to tuples
+        return tokens_ids, tokens_freqs
+
+    def fit_greedy(self, tokens, T, debug_output=False):
         if not self.tokenize:
-            xs = [xs.replace(" ", "▁")]
+            # treat the whole line as one word
+            tokens = [[line.replace(" ", "▁")] for line in tokens.split("\n")]
         else:
-            # TODO: this is suboptimal because we're computing the same word twice
-            # instead of muiltiplying the result by the frequency 
-            xs = xs.replace(" ", " ▁").split(" ")
+            # split to individual words (by spaces)
+            tokens = [line.replace(" ", " ▁").split(" ") for line in tokens.split("\n")]
+        
+        tokens_ids, tokens_freqs = self.token_dictionary(tokens)
 
         for t in range(T):
-            pairs = self.get_pair_counts(xs)
+            pairs = self.get_word_pair_counts(tokens_freqs)
             pair = self.top_pair(pairs)
-            xs = self.apply_merge_slow(xs, pair)
+            # this mutates tokens_freqs
+            self.apply_merge_slow(tokens_freqs, pair)
 
-        return [pretty_seq(x) for xs_word in xs for x in xs_word]
+        if debug_output:
+            flattener = debug_flat_seq
+        else:
+            flattener = flat_seq
+
+        output = [
+            [flattener(x) for word_id in line_ids for x in tokens_freqs[word_id][0]]
+            for line_ids in tokens_ids
+        ]
+
+        return output

@@ -54,13 +54,13 @@ class UniqueList:
         return f'UniqueList({self.xs})'
 
 
-def pretty_seq(x):
+def debug_flat_seq(x):
     if type(x) is list:
-        return " ".join([pretty_seq(i) for i in x])
+        return " ".join([debug_flat_seq(i) for i in x])
     if type(x) is str:
         return x
     if type(x) is tuple:
-        return f"({pretty_seq(x[0])}{pretty_seq(x[1])})"
+        return f"({debug_flat_seq(x[0])}{debug_flat_seq(x[1])})"
 
 def flat_seq(x):
     if type(x) is list:

@@ -1,7 +1,7 @@
 
 from arsenal.datastructures import LocatorMaxHeap
 from collections import defaultdict
-from faster_bpe.utils import VERBOSITY, check, pairs_in_list, UniqueList, flat_seq, pretty_seq
+from faster_bpe.utils import VERBOSITY, check, pairs_in_list, UniqueList, flat_seq, debug_flat_seq
 
 
 class Token:
@@ -15,7 +15,7 @@ class Token:
         self.next = None
 
     def __repr__(self):
-        return pretty_seq(self.x)
+        return debug_flat_seq(self.x)
         return flat_seq(self.x)
 
 
@@ -140,11 +140,12 @@ class FasterBPE:
             pair = self.top_pair()
             self.merge(pair)
 
-        return self.get_seq()
+        return self.get_seq(self.root)
 
-    def get_seq(self):
+    @staticmethod
+    def get_seq(root):
         out = []
-        curr = self.root
+        curr = root
         while curr is not None:
             out.append(str(curr))
             curr = curr.next
