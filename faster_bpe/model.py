@@ -16,20 +16,24 @@ class Token:
         self.line_i = line_i
 
     def __repr__(self):
-        return debug_flat_seq(self.x)
         return flat_seq(self.x)
-
+        return debug_flat_seq(self.x)
 
 class FasterBPE:
-    def __init__(self):
-        pass
+    def __init__(self, tokenize=False):
+        self.tokenize = tokenize
 
     def top_pair(self):
-        return self.heap.peek()[0]
-
-    @property
-    def xs(self):
-        return [t.x for t in self]
+        if self.tokenize:
+            # pop until we get a valid pair
+            while True:
+                pair = self.heap.peek()[0]
+                if " " in pair:
+                    self.heap.pop()
+                else:
+                    return pair
+        else:
+            return self.heap.peek()[0]
 
     def merge(self, pair):
         blocklist = set()
@@ -106,10 +110,15 @@ class FasterBPE:
         )
 
     def fit_greedy(self, tokens, T):
-        # initialization
-        # TODO sents starts here
-        tokens = tokens.split("\n")
+        # treat the whole line as one word
+        # the tokenization effect takes place only in top_pair
+        if self.tokenize:
+            tokens = [line.replace(" ", " ▁") for line in tokens.split("\n")]
+            print(tokens)
+        else:
+            tokens = [line.replace(" ", "▁") for line in tokens.split("\n")]
 
+        # initialization
         self.roots = [Token(line[0], line_i) for line_i, line in enumerate(tokens)]
         ys = []
         for line_i, (line_root, line) in enumerate(zip(self.roots, tokens)):
@@ -139,11 +148,11 @@ class FasterBPE:
 
         return [self.get_seq(root) for root in self.roots]
 
-    @staticmethod
-    def get_seq(root):
+    def get_seq(self, root):
         out = []
         curr = root
         while curr is not None:
             out.append(str(curr))
             curr = curr.next
-        return [str(x) for x in out]
+        # filter out single spaces - they are never valid subwords on their own
+        return [str(x) for x in out if x != " "]

@@ -29,6 +29,7 @@ class UniqueList:
         assert x not in self.loc
         self.xs.append(x)
         self.loc[x] = i
+        # TODO: this could be freq
         self.n += 1
         return self.n
 
@@ -36,6 +37,7 @@ class UniqueList:
         if x in self.loc:
             i = self.loc.pop(x)
             self.xs[i] = None
+            # TODO: this could be freq
             self.n -= 1
         return self.n
 

@@ -78,7 +78,6 @@ class SlowBPE:
 
             tokens_ids.append(token_ids_line)
 
-        # TODO: fortify to tuples
         return tokens_ids, tokens_freqs
 
     def fit_greedy(self, tokens, T, debug_output=False):

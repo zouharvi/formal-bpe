@@ -3,10 +3,8 @@
 import itertools
 import string
 import argparse
-from arsenal.iterextras import take
 from faster_bpe.model import FasterBPE
 from faster_bpe.model_slow import SlowBPE
-from faster_bpe.utils import debug_flat_seq
 
 args = argparse.ArgumentParser()
 args.add_argument("--example-length", type=int, default=8)
@@ -25,24 +23,32 @@ for example in map(
 
     assert len(result_slow) <= len(result_faster)
 
+    # the reason why faster bpe sometimes gives worse results is because it does not implement the overlap fix
+    # and due to the max heap, always attempts to first merge earlier pairs (i.e. pairs)
+    # for two steps of merges, that will always be suboptimal (but actually is better from application perspective)
     if len(result_slow) != len(result_faster):
         print(f"\n{example}")
         print(len(result_slow), "|||", len(result_faster))
         print(result_slow, "|||", result_faster)
 
-print("\nWithout tokenization")
 example="The lazy brown fox jumped over the quick frog.\nThe brown jumper with the froggo suits me well."
+
+print("\nWithout tokenization")
 model = SlowBPE(fix_overlap=False, tokenize=False)
-result = model.fit_greedy(example, 20)
+result = model.fit_greedy(example, 10)
 print(sum(len(line) for line in result), result)
 
 print("\nWith tokenization")
 model = SlowBPE(fix_overlap=False, tokenize=True)
-result = model.fit_greedy(example, 20)
+result = model.fit_greedy(example, 10)
 print(sum(len(line) for line in result), result)
 
 print("\nFaster without tokenization")
-example="The lazy brown fox jumped over the quick frog.\nThe brown jumper with the froggo suits me well."
-model = FasterBPE()
-result = model.fit_greedy(example, 20)
+model = FasterBPE(tokenize=False)
+result = model.fit_greedy(example, 10)
+print(sum(len(line) for line in result), result)
+
+print("\nFaster with tokenization")
+model = FasterBPE(tokenize=True)
+result = model.fit_greedy(example, 10)
 print(sum(len(line) for line in result), result)
