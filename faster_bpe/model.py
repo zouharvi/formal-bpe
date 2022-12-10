@@ -7,12 +7,13 @@ from faster_bpe.utils import VERBOSITY, check, pairs_in_list, UniqueList, flat_s
 class Token:
     # TODO: hash and equality can take time proportional to the size of the tuple.
     # We can fix that with hashconsing.
-    __slots__ = ('x', 'prev', 'next')
+    __slots__ = ('x', 'prev', 'next', "line_i")
 
-    def __init__(self, x):
+    def __init__(self, x, line_i):
         self.x = x
         self.prev = None
         self.next = None
+        self.line_i = line_i
 
     def __repr__(self):
         return debug_flat_seq(self.x)
@@ -25,15 +26,6 @@ class FasterBPE:
 
     def top_pair(self):
         return self.heap.peek()[0]
-
-    def __repr__(self):
-        return repr(list(self))
-
-    def __iter__(self):
-        curr = self.root
-        while curr is not None:
-            yield curr
-            curr = curr.next
 
     @property
     def xs(self):
@@ -57,7 +49,7 @@ class FasterBPE:
 
             blocklist.add(t.next)
 
-            new = Token((t.x, t.next.x))
+            new = Token((t.x, t.next.x), t.line_i)
 
             if old.prev is not None:
                 prev = old.prev
@@ -70,7 +62,7 @@ class FasterBPE:
                 ].append(t.prev)
 
             else:
-                self.root = new
+                self.roots[t.line_i] = new
                 if VERBOSITY > 0:
                     print('update ROOT')
 
@@ -113,34 +105,39 @@ class FasterBPE:
             {k: v for k, v in pos.items() if len(v)}
         )
 
-    def fit_greedy(self, xs, T):
+    def fit_greedy(self, tokens, T):
         # initialization
-        self.n = len(xs)
-        root = Token(xs[0])
-        ys = [root]
-        prev = root
-        curr = prev
-        for t in range(1, len(xs)):
-            curr = Token(xs[t])
-            ys.append(curr)
-            curr.prev, prev = prev, curr
-        next = None
-        while curr is not None:
-            curr.next = next
-            curr, next = curr.prev, curr
-        self.root = root
+        # TODO sents starts here
+        tokens = tokens.split("\n")
+
+        self.roots = [Token(line[0], line_i) for line_i, line in enumerate(tokens)]
+        ys = []
+        for line_i, (line_root, line) in enumerate(zip(self.roots, tokens)):
+            ys_line = [line_root]
+            prev = line_root
+            curr = prev
+            for t in range(1, len(line)):
+                curr = Token(line[t], line_i)
+                ys_line.append(curr)
+                curr.prev, prev = prev, curr
+            next = None
+            while curr is not None:
+                curr.next = next
+                curr, next = curr.prev, curr
+            ys.append(ys_line)
 
         self.heap = LocatorMaxHeap()
         self.pos = defaultdict(UniqueList)
-        for (x, y) in pairs_in_list(ys):
-            self.heap[x.x, y.x] = self.pos[x.x, y.x].append(x)
+        for ys_line in ys:
+            for (x, y) in pairs_in_list(ys_line):
+                self.heap[x.x, y.x] = self.pos[x.x, y.x].append(x)
 
         # actual training
         for t in range(T):
             pair = self.top_pair()
             self.merge(pair)
 
-        return self.get_seq(self.root)
+        return [self.get_seq(root) for root in self.roots]
 
     @staticmethod
     def get_seq(root):

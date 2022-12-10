@@ -21,7 +21,7 @@ for example in map(
     result_slow = bpe_slow.fit_greedy(example, 2, debug_output=True)[0]
 
     bpe_faster = FasterBPE()
-    result_faster = bpe_faster.fit_greedy(example, 2)
+    result_faster = bpe_faster.fit_greedy(example, 2)[0]
 
     assert len(result_slow) <= len(result_faster)
 
@@ -32,11 +32,17 @@ for example in map(
 
 print("\nWithout tokenization")
 example="The lazy brown fox jumped over the quick frog.\nThe brown jumper with the froggo suits me well."
-bpe_slow = SlowBPE(fix_overlap=False, tokenize=False)
-result_slow = bpe_slow.fit_greedy(example, 20)
-print(result_slow)
+model = SlowBPE(fix_overlap=False, tokenize=False)
+result = model.fit_greedy(example, 20)
+print(sum(len(line) for line in result), result)
 
 print("\nWith tokenization")
-bpe_slow = SlowBPE(fix_overlap=False, tokenize=True)
-result_slow = bpe_slow.fit_greedy(example, 20)
-print(result_slow)
+model = SlowBPE(fix_overlap=False, tokenize=True)
+result = model.fit_greedy(example, 20)
+print(sum(len(line) for line in result), result)
+
+print("\nFaster without tokenization")
+example="The lazy brown fox jumped over the quick frog.\nThe brown jumper with the froggo suits me well."
+model = FasterBPE()
+result = model.fit_greedy(example, 20)
+print(sum(len(line) for line in result), result)
