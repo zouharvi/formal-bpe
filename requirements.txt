@@ -3,3 +3,4 @@ git+https://github.com/timvieira/arsenal.git
 pylab
 numpy
 sacremoses
+sentencepiece

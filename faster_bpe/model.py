@@ -2,7 +2,7 @@
 from arsenal.datastructures import LocatorMaxHeap
 from collections import defaultdict
 from faster_bpe.utils import VERBOSITY, check, pairs_in_list, UniqueList, flat_seq, debug_flat_seq
-
+from rich.progress import track
 
 class Token:
     # TODO: hash and equality can take time proportional to the size of the tuple.
@@ -109,14 +109,15 @@ class FasterBPE:
             {k: v for k, v in pos.items() if len(v)}
         )
 
-    def fit_greedy(self, tokens, T):
+    def fit_greedy(self, tokens, T, progress_bar=False):
         # treat the whole line as one word
         # the tokenization effect takes place only in top_pair
         if self.tokenize:
             tokens = [line.replace(" ", " ▁") for line in tokens.split("\n")]
-            print(tokens)
         else:
             tokens = [line.replace(" ", "▁") for line in tokens.split("\n")]
+
+        tokens = [" " if len(line) == 0 else line for line in tokens]
 
         # initialization
         self.roots = [Token(line[0], line_i) for line_i, line in enumerate(tokens)]
@@ -142,7 +143,8 @@ class FasterBPE:
                 self.heap[x.x, y.x] = self.pos[x.x, y.x].append(x)
 
         # actual training
-        for t in range(T):
+        iterator = track(range(T)) if progress_bar else range(T)
+        for t in iterator:
             pair = self.top_pair()
             self.merge(pair)
 

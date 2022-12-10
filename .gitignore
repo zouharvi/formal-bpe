@@ -1,5 +1,6 @@
 # added by zouharvi
 data/
+computed/
 
 # globs:
 syntax: glob

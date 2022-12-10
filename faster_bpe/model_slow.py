@@ -1,6 +1,7 @@
 from collections import defaultdict
 from faster_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
 from typing import Dict, List, Tuple
+from rich.progress import track
 
 class SlowBPE:
     def __init__(self, fix_overlap=False, tokenize=False):
@@ -80,7 +81,7 @@ class SlowBPE:
 
         return tokens_ids, tokens_freqs
 
-    def fit_greedy(self, tokens, T, debug_output=False):
+    def fit_greedy(self, tokens, T, debug_output=False, progress_bar=False):
         if not self.tokenize:
             # treat the whole line as one word
             tokens = [[line.replace(" ", "▁")] for line in tokens.split("\n")]
@@ -90,8 +91,11 @@ class SlowBPE:
         
         tokens_ids, tokens_freqs = self.token_dictionary(tokens)
 
-        for t in range(T):
+        iterator = track(range(T)) if progress_bar else range(T)
+        for t in iterator:
             pairs = self.get_word_pair_counts(tokens_freqs)
+            if len(pairs) == 0:
+                break
             pair = self.top_pair(pairs)
             # this mutates tokens_freqs
             self.apply_merge_slow(tokens_freqs, pair)
