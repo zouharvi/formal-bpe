@@ -69,7 +69,6 @@ for model, data_local in data_small.items():
     )
 
 for model, data_local in data_large.items():
-    print(model)
     xticks = [x["n_line"] for x in data_local][8:]
     times = [x["time"] for x in data_local][8:]
     ax2.plot(

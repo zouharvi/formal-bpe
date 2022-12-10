@@ -9,6 +9,7 @@ class SentencePiece:
             try:
                 model = io.BytesIO()
                 spm.SentencePieceTrainer.train(
+                    model_type="bpe",
                     sentence_iterator=(x for x in tokens),
                     model_writer=model,
                     vocab_size=vocab_size,
@@ -18,5 +19,6 @@ class SentencePiece:
                 sp = spm.SentencePieceProcessor(model_proto=model.getvalue())
                 tokens = [sp.encode(line) for line in tokens]
                 return tokens
-            except Exception:
+            except Exception as e:
+                print(e)
                 vocab_size -= 500 

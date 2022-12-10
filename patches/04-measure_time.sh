@@ -3,6 +3,7 @@
 LINE_COUNTS_SMALL="250 500 750 1000 1250 1500 1750 2000"
 
 # for model in "faster_notok" "faster_tok" "slow_tok" "slow_notok";
+# for model in "sentencepiece";
 # do
 #     ./experiments/measure_time.py \
 #         -m "${model}" \
@@ -19,7 +20,7 @@ do
     ./experiments/measure_time.py \
         -m "${model}" \
         -l "computed/time_${model}.jsonl" \
-        -n ${LINE_COUNTS_SMALL} ${LINE_COUNTS_LARGE} \
+        -n ${LINE_COUNTS_LARGE} \
         -v 8000 \
     ;
 done;
