@@ -1,5 +1,6 @@
 from collections import defaultdict
 import copy
+from formal_bpe.model_exact_dyn import insert_into_canonized_sequence, merge_signature
 from formal_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
 
 class ExactBruteNormBPE:
@@ -52,7 +53,28 @@ class ExactBruteNormBPE:
     def top_pair(pairs):
         return max(pairs, key=pairs.__getitem__)
 
-    def fit_greedy(self, tokens, T):
+    # def fit_greedy(self, tokens, T):
+    #     if T == 0:
+    #         return [debug_flat_seq(x) for x in tokens]
+
+    #     outputs = []
+
+    #     pairs = self.get_word_pair_counts(tokens)
+    #     for pair, pair_freq in pairs.items():
+    #         # equalize with exact dyn
+    #         pair = (merge_signature(pair), pair)
+    #         tokens_new = self.apply_merge_slow(tokens, pair[1])
+    #         outputs.append(self.fit_greedy(tokens_new, T-1))
+    #     else:
+    #         outputs.append(tokens)
+
+    #     # this mutates tokens_freqs
+    #     output = min(outputs, key=len)
+    #     output = [debug_flat_seq(x) for x in output]
+    #     return output
+
+
+    def fit_greedy(self, tokens, T, seq=tuple()):
         if T == 0:
             return [debug_flat_seq(x) for x in tokens]
 
@@ -60,12 +82,21 @@ class ExactBruteNormBPE:
 
         pairs = self.get_word_pair_counts(tokens)
         for pair, pair_freq in pairs.items():
-            tokens_new = self.apply_merge_slow(tokens, pair)
-            outputs.append(self.fit_greedy(tokens_new, T-1))
+            pair = (merge_signature(pair), pair)
+            # this is dangerous because we're not making a deep copy
+            new_seq = tuple()
+            # new_seq = tuple(insert_into_canonized_sequence(seq, pair))
+
+            # only do those that have not been explored yet
+            # if new_seq in self.explored_seq:
+            #     pass
+            self.explored_seq.add(new_seq)
+
+            tokens_new = self.apply_merge_slow(tokens, pair[1])
+            outputs.append(self.fit_greedy(tokens_new, T-1, new_seq))
         else:
             outputs.append(tokens)
 
-        # this mutates tokens_freqs
         output = min(outputs, key=len)
         output = [debug_flat_seq(x) for x in output]
         return output

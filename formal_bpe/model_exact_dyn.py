@@ -35,6 +35,14 @@ def canonize_sequence(seq):
                 seq[i+1],seq[i] = seq[i], seq[i+1]
     return seq
 
+def insert_into_canonized_sequence(seq, item):
+    i = len(seq)
+    for i in range(len(seq)-1, -1, -1):
+        if not compare_merges(seq[i], item):
+            break
+    
+    return seq[:i+1]+(item,)+seq[i:]
+
 class ExactDynBPE:
     def __init__(self, fix_overlap=False):
         if fix_overlap:
@@ -85,31 +93,29 @@ class ExactDynBPE:
     def top_pair(pairs):
         return max(pairs, key=pairs.__getitem__)
 
-    def fit_greedy(self, tokens, T, seq=[]):
+    def fit_greedy(self, tokens, T, seq=tuple()):
         if T == 0:
             return [debug_flat_seq(x) for x in tokens]
 
         outputs = []
 
-        # TODO: modify pairs
         pairs = self.get_word_pair_counts(tokens)
         for pair, pair_freq in pairs.items():
             pair = (merge_signature(pair), pair)
             # this is dangerous because we're not making a deep copy
-            new_seq = canonize_sequence(copy.copy(seq)+ [pair])
+            new_seq = tuple(insert_into_canonized_sequence(seq, pair))
 
             # only do those that have not been explored yet
-            if tuple(new_seq) in self.explored_seq:
+            if new_seq in self.explored_seq:
                 continue
             
-            self.explored_seq.add(tuple(new_seq))
+            self.explored_seq.add(new_seq)
 
             tokens_new = self.apply_merge_slow(tokens, pair[1])
             outputs.append(self.fit_greedy(tokens_new, T-1, new_seq))
         else:
             outputs.append(tokens)
 
-        # this mutates tokens_freqs
         output = min(outputs, key=len)
         output = [debug_flat_seq(x) for x in output]
         return output

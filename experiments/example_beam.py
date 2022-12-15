@@ -53,26 +53,26 @@ for length in range(args.example_length_start, args.example_length + 1):
         )
         result_greedy = result_greedy[0]
 
-        # model = ExactBruteBPE(fix_overlap=True)
-        # result_exact = model.fit_greedy(
-        #     example, T=args.merge_count,
-        # )
-
-        bpe_beam = SlowBeamBPE()
-        result_beam = bpe_beam.fit_beam_search(
+        model = ExactBruteBPE(fix_overlap=True)
+        result_beam = model.fit_greedy(
             example, T=args.merge_count,
-            B=args.beam_size
         )
+
+        # model = SlowBeamBPE()
+        # result_beam = model.fit_beam_search(
+        #     example, T=args.merge_count,
+        #     B=args.beam_size
+        # )
 
         n_beam = len(example) - len(result_beam)
         n_greedy = len(example) - len(result_greedy)
         # print(f"Ratio: {n_greedy/ n_beam:.2f}")
 
-        if min_ratio >= n_greedy / n_beam and n_beam / n_greedy != 1:            
+        if min_ratio >= n_greedy / n_beam and n_beam / n_greedy != 1:
             min_ratio = n_greedy/n_beam
             print("Example:    ", example, "indecision", indecision)
-            print(f"Greedy:      ({n_greedy})", result_greedy)
-            print(f"Beam search: ({n_beam})", result_beam)
+            print(f"Greedy:      ({len(result_greedy)})", result_greedy)
+            print(f"Beam search: ({len(result_beam)})", result_beam)
             print(f"Ratio:       {n_greedy/ n_beam:.2f}")
             print("====")
 

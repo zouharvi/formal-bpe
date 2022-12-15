@@ -1,14 +1,13 @@
 from collections import defaultdict
+import copy
 from formal_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
-from typing import Dict, List, Tuple
-from rich.progress import track
 
-class ExactBruteBPE:
+class ExactGreedyBPE:
     def __init__(self, fix_overlap=False):
-        self.fix_overlap = fix_overlap
         if fix_overlap:
             self.get_word_pair_counts = self.get_word_pair_counts_fix_overlap
 
+        self.explored_seq = set()
 
     @staticmethod
     def apply_merge_multiple(token, pair):
@@ -21,9 +20,9 @@ class ExactBruteBPE:
                 # oh no the next one is also a possilbe merge
                 if i < N -  2 and (token[i+1], token[i + 2]) == pair:
                     # merge now
-                    results_1 = [ys_word + [pair] + x for x in  ExactBruteBPE.apply_merge_multiple(token[i+2:], pair)]
+                    results_1 = [ys_word + [pair] + x for x in  ExactGreedyBPE.apply_merge_multiple(token[i+2:], pair)]
                     # don't merge now
-                    results_2 = [ys_word + [token[i]] + x for x in  ExactBruteBPE.apply_merge_multiple(token[i+1:], pair)]
+                    results_2 = [ys_word + [token[i]] + x for x in  ExactGreedyBPE.apply_merge_multiple(token[i+1:], pair)]
                     return results_1 + results_2
                 else:
                     ys_word.append(pair)
@@ -33,20 +32,6 @@ class ExactBruteBPE:
                 ys_word.append(token[i])
                 i += 1
         return [ys_word]
-
-    @staticmethod
-    def apply_merge_slow(token, pair):
-        ys_word = []
-        i = 0
-        N = len(token)
-        while i < N:
-            if i < N - 1 and (token[i], token[i + 1]) == pair:
-                ys_word.append(pair)
-                i += 2
-            else:
-                ys_word.append(token[i])
-                i += 1
-        return ys_word
 
     @staticmethod
     def get_word_pair_counts(tokens_freqs):
@@ -81,20 +66,31 @@ class ExactBruteBPE:
         if T == 0:
             return [debug_flat_seq(x) for x in tokens]
 
-        outputs = []
-        self.model = ExactBruteBPE(self.fix_overlap)
+        while T > 0:
+            T = T-1
+            pairs = self.get_word_pair_counts(tokens)
+            max_pair_f = max(pairs.values())
+            pairs = [p for p,f in pairs.items() if f == max_pair_f]
+            if len(pairs) == 1:
+                # good, continue with greedy
+                tokens_merged = self.apply_merge_multiple(tokens, pairs[0])
+                if len(tokens_merged) != 1:
+                    # oh no we have multiple ways of mergine
+                    outputs = []
+                    for tokens_merged_option in tokens_merged:
+                        outputs.append(self.fit_greedy(tokens_merged_option, T))
+                    tokens = min(outputs, key=len)
+                    break
+                else:
+                    tokens = tokens_merged[0]
+            else:
+                outputs = []
+                for pair in pairs:
+                    tokens_merged = self.apply_merge_multiple(tokens, pair)
+                    for tokens_merged_option in tokens_merged:
+                        outputs.append(self.fit_greedy(tokens_merged_option, T))
+                tokens = min(outputs, key=len)
+                break
 
-        pairs = self.get_word_pair_counts(tokens)
-        # if len(pairs) == 0: ???
-        for pair, pair_freq in pairs.items():
-            # TODO: resolve the other indecision
-            # UPDATE: that one is implicitly fixed by swapping the operands
-            tokens_merged = self.apply_merge_multiple(tokens, pair)
-            for tokens_merged_option in tokens_merged:
-                outputs.append(self.model.fit_greedy(tokens_merged_option, T-1))
-
-        # this mutates tokens_freqs
-
-        output = min(outputs, key=len)
-        output = [debug_flat_seq(x) for x in output]
-        return output
+        tokens = [debug_flat_seq(x) for x in tokens]
+        return tokens

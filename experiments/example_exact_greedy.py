@@ -6,6 +6,7 @@ import string
 import argparse
 from formal_bpe.model_exact_dyn import ExactDynBPE
 from formal_bpe.model_exact_brute import ExactBruteBPE
+from formal_bpe.model_exact_greedy import ExactGreedyBPE
 from formal_bpe.model_exact_brute_norm import ExactBruteNormBPE
 from formal_bpe.model_slow import SlowBPE
 from rich.progress import track
@@ -15,7 +16,6 @@ args = argparse.ArgumentParser()
 args.add_argument("--example-length-start", type=int, default=None)
 args.add_argument("--example-length", type=int, default=8)
 args.add_argument("--alphabet-size", type=int, default=2)
-args.add_argument("--beam-size", type=int, default=5)
 args.add_argument("--merge-count", type=int, default=2)
 args = args.parse_args()
 
@@ -24,8 +24,8 @@ if args.example_length_start is None:
 
 alphabet = string.ascii_lowercase[:args.alphabet_size]
 
-times_dyn = []
-times_brute = []
+times_1 = []
+times_2 = []
 
 for length in range(args.example_length_start, args.example_length + 1):
     iterator = map(
@@ -48,24 +48,28 @@ for length in range(args.example_length_start, args.example_length + 1):
         if not set(example_letters).issubset(alphabet[:len(set(example_letters))]):
             continue
 
-        time_start = time.time()
-        model = ExactDynBPE(fix_overlap=True)
-        result_dyn = model.fit_greedy(
-            example, T=args.merge_count,
-        )
-        times_dyn.append(time.time()-time_start)
-
-        time_start = time.time()
-        model = ExactBruteNormBPE(fix_overlap=True)
+        start_time = time.time()
+        model = ExactBruteBPE(fix_overlap=True)
         result_exact = model.fit_greedy(
             example, T=args.merge_count,
         )
-        times_brute.append(time.time()-time_start)
+        times_1.append(time.time()-start_time)
 
-        # n_beam = len(result_dyn)
-        # n_exact = len(result_exact)
+        start_time = time.time()
+        model = ExactGreedyBPE(fix_overlap=True)
+        result_greedy = model.fit_greedy(
+            example, T=args.merge_count,
+        )
+        times_2.append(time.time()-start_time)
 
-        # if n_beam != n_exact:
-        #     print(n_beam, n_exact)
-print(f"Dyn {sum(times_dyn):.0f}")
-print(f"Brute {sum(times_brute):.0f}")
+        n_beam = len(result_exact)
+        n_exact = len(result_greedy)
+
+        if n_beam != n_exact:
+            print(n_beam, n_exact)
+            print(example)
+            print("Exact", result_exact)
+            print("Greedy", result_greedy)
+
+print(f"Time exactbrute: {sum(times_1):.1f}s")
+print(f"Time exactgreedy: {sum(times_2):.1f}s")
