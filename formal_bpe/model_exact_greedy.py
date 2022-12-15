@@ -64,7 +64,9 @@ class ExactGreedyBPE:
 
     def fit_greedy(self, tokens, T):
         if T == 0:
-            return [debug_flat_seq(x) for x in tokens]
+            return [debug_flat_seq(x) for x in tokens], False
+
+        type_1_indecision = False
 
         while T > 0:
             T = T-1
@@ -75,11 +77,14 @@ class ExactGreedyBPE:
                 # good, continue with greedy
                 tokens_merged = self.apply_merge_multiple(tokens, pairs[0])
                 if len(tokens_merged) != 1:
-                    # oh no we have multiple ways of mergine
+                    type_1_indecision = True
+                    # oh no we have multiple ways of merging
                     outputs = []
                     for tokens_merged_option in tokens_merged:
                         outputs.append(self.fit_greedy(tokens_merged_option, T))
-                    tokens = min(outputs, key=len)
+                    output_sequences = [x[0] for x in outputs]
+                    type_1_indecision = type_1_indecision or any([x[1] for x in outputs])
+                    tokens = min(output_sequences, key=len)
                     break
                 else:
                     tokens = tokens_merged[0]
@@ -89,8 +94,10 @@ class ExactGreedyBPE:
                     tokens_merged = self.apply_merge_multiple(tokens, pair)
                     for tokens_merged_option in tokens_merged:
                         outputs.append(self.fit_greedy(tokens_merged_option, T))
-                tokens = min(outputs, key=len)
+                output_sequences = [x[0] for x in outputs]
+                type_1_indecision = type_1_indecision or any([x[1] for x in outputs])
+                tokens = min(output_sequences, key=len)
                 break
 
         tokens = [debug_flat_seq(x) for x in tokens]
-        return tokens
+        return tokens, type_1_indecision

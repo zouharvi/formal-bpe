@@ -78,13 +78,14 @@ class ExactBruteBPE:
         return max(pairs, key=pairs.__getitem__)
 
     def fit_greedy(self, tokens, T):
-        if T == 0:
-            return [debug_flat_seq(x) for x in tokens]
 
         outputs = []
         self.model = ExactBruteBPE(self.fix_overlap)
 
         pairs = self.get_word_pair_counts(tokens)
+        if T == 0 or len(pairs) == 0:
+            return [debug_flat_seq(x) for x in tokens]
+
         # if len(pairs) == 0: ???
         for pair, pair_freq in pairs.items():
             # TODO: resolve the other indecision

@@ -57,8 +57,8 @@ for length in range(args.example_length_start, args.example_length + 1):
         times_1.append(time.time()-start_time)
 
         start_time = time.time()
-        model = SlowExactPermBPE(fix_overlap=True)
-        result_greedy = model.fit_greedy(
+        model = ExactGreedyBPE(fix_overlap=True)
+        result_greedy, type_1_indecision = model.fit_greedy(
             example, T=args.merge_count,
         )
         times_2.append(time.time()-start_time)
@@ -66,7 +66,7 @@ for length in range(args.example_length_start, args.example_length + 1):
         n_beam = len(result_exact)
         n_exact = len(result_greedy)
 
-        if n_beam != n_exact:
+        if n_beam != n_exact and not type_1_indecision:
             print(n_beam, n_exact)
             print(example)
             print("Exact", result_exact)
