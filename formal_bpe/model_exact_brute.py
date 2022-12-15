@@ -46,7 +46,7 @@ class ExactBruteBPE:
             else:
                 ys_word.append(token[i])
                 i += 1
-        return ys_word
+        return [ys_word]
 
     @staticmethod
     def get_word_pair_counts(tokens_freqs):

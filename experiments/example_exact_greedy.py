@@ -7,6 +7,7 @@ import argparse
 from formal_bpe.model_exact_dyn import ExactDynBPE
 from formal_bpe.model_exact_brute import ExactBruteBPE
 from formal_bpe.model_exact_greedy import ExactGreedyBPE
+from formal_bpe.model_exact_perm import SlowExactPermBPE
 from formal_bpe.model_exact_brute_norm import ExactBruteNormBPE
 from formal_bpe.model_slow import SlowBPE
 from rich.progress import track
@@ -56,7 +57,7 @@ for length in range(args.example_length_start, args.example_length + 1):
         times_1.append(time.time()-start_time)
 
         start_time = time.time()
-        model = ExactGreedyBPE(fix_overlap=True)
+        model = SlowExactPermBPE(fix_overlap=True)
         result_greedy = model.fit_greedy(
             example, T=args.merge_count,
         )
@@ -70,6 +71,7 @@ for length in range(args.example_length_start, args.example_length + 1):
             print(example)
             print("Exact", result_exact)
             print("Greedy", result_greedy)
+            exit()
 
 print(f"Time exactbrute: {sum(times_1):.1f}s")
 print(f"Time exactgreedy: {sum(times_2):.1f}s")
