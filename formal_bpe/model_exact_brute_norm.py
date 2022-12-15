@@ -1,13 +1,13 @@
 from collections import defaultdict
+import copy
 from formal_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
-from typing import Dict, List, Tuple
-from rich.progress import track
 
-class ExactBruteBPE:
+class ExactBruteNormBPE:
     def __init__(self, fix_overlap=False):
-        self.fix_overlap = fix_overlap
         if fix_overlap:
             self.get_word_pair_counts = self.get_word_pair_counts_fix_overlap
+
+        self.explored_seq = set()
 
     @staticmethod
     def apply_merge_slow(token, pair):
@@ -57,18 +57,15 @@ class ExactBruteBPE:
             return [debug_flat_seq(x) for x in tokens]
 
         outputs = []
-        self.model = ExactBruteBPE(self.fix_overlap)
 
         pairs = self.get_word_pair_counts(tokens)
-        # if len(pairs) == 0: ???
         for pair, pair_freq in pairs.items():
-            # TODO: resolve the other indecision
-            # UPDATE: that one is implicitly fixed by swapping the operands
             tokens_new = self.apply_merge_slow(tokens, pair)
-            outputs.append(self.model.fit_greedy(tokens_new, T-1))
+            outputs.append(self.fit_greedy(tokens_new, T-1))
+        else:
+            outputs.append(tokens)
 
         # this mutates tokens_freqs
-
         output = min(outputs, key=len)
         output = [debug_flat_seq(x) for x in output]
         return output

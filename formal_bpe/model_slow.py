@@ -1,5 +1,5 @@
 from collections import defaultdict
-from faster_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
+from formal_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
 from typing import Dict, List, Tuple
 from rich.progress import track
 
