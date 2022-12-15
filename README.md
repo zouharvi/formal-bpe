@@ -1,4 +1,4 @@
-# faster-BPE
+# Formal-BPE
 
 For testing, run:
 
@@ -6,5 +6,5 @@ For testing, run:
 pip3 install -r requirements.txt
 ./patches/01-download_data.sh
 ./patches/02-tokenize_dat.sh
-python3 ./faster_bpe/test.py
+python3 ./formal_bpe/test.py
 ```

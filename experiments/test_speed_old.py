@@ -4,9 +4,9 @@ import random
 from itertools import product
 from time import time
 from arsenal import colors, timers, timeit
-from faster_bpe.model import FasterBPE
-from faster_bpe.model_slow import SlowBPE
-from faster_bpe.utils import VERBOSITY, check
+from formal_bpe.model import FasterBPE
+from formal_bpe.model_slow import SlowBPE
+from formal_bpe.utils import VERBOSITY, check
 
 def test_correctness():
     for xs in [

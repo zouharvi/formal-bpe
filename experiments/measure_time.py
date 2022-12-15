@@ -3,8 +3,8 @@
 import json
 import time
 import argparse
-from faster_bpe.model import FasterBPE
-from faster_bpe.model_slow import SlowBPE
+from formal_bpe.model import FasterBPE
+from formal_bpe.model_slow import SlowBPE
 from external_model_wrap import SentencePiece
 
 args = argparse.ArgumentParser()

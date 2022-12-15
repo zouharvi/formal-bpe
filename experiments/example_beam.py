@@ -5,10 +5,10 @@ import itertools
 import string
 import argparse
 from arsenal.iterextras import take
-from faster_bpe.model_slow_beam import SlowBeamBPE
-from faster_bpe.model_slow_insert import SlowInsertBPE
-from faster_bpe.model_exact_brute import ExactBruteBPE
-from faster_bpe.model_slow import SlowBPE
+from formal_bpe.model_slow_beam import SlowBeamBPE
+from formal_bpe.model_slow_insert import SlowInsertBPE
+from formal_bpe.model_exact_brute import ExactBruteBPE
+from formal_bpe.model_slow import SlowBPE
 from rich.progress import track
 
 args = argparse.ArgumentParser()

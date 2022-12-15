@@ -3,8 +3,8 @@
 import itertools
 import string
 import argparse
-from faster_bpe.model import FasterBPE
-from faster_bpe.model_slow import SlowBPE
+from formal_bpe.model import FasterBPE
+from formal_bpe.model_slow import SlowBPE
 
 args = argparse.ArgumentParser()
 args.add_argument("--example-length", type=int, default=8)
