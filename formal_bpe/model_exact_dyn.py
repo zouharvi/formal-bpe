@@ -12,7 +12,6 @@ def merge_signature(merge):
         sig2 = merge_signature(merge[1])
         return sig1+sig2
 
-
 def compare_merges(a, b):
     # b is smaller, so swap
     if len(a[0]) > len(b[0]):
@@ -25,23 +24,14 @@ def compare_merges(a, b):
     # otherwise lexicographically
     return a[0] > b[0]
 
-def canonize_sequence(seq):
-    """
-    Mutates the input sequence. Essentially bubble sort.
-    """
-    for _ in range(len(seq)):
-        for i in range(len(seq)-1):
-            if compare_merges(seq[i], seq[i+1]):
-                seq[i+1],seq[i] = seq[i], seq[i+1]
-    return seq
-
 def insert_into_canonized_sequence(seq, item):
     i = len(seq)
     for i in range(len(seq)-1, -1, -1):
         if not compare_merges(seq[i], item):
             break
     
-    return seq[:i+1]+(item,)+seq[i:]
+    seq.insert(i, item)
+    return seq
 
 class ExactDynBPE:
     def __init__(self, fix_overlap=False):
@@ -95,27 +85,29 @@ class ExactDynBPE:
 
     def fit_greedy(self, tokens, T, seq=tuple()):
         if T == 0:
-            return [debug_flat_seq(x) for x in tokens]
+            return [debug_flat_seq(x) for x in tokens], 1
 
         outputs = []
 
         pairs = self.get_word_pair_counts(tokens)
         for pair, pair_freq in pairs.items():
             pair = (merge_signature(pair), pair)
-            # this is dangerous because we're not making a deep copy
-            new_seq = tuple(insert_into_canonized_sequence(seq, pair))
+            new_seq = tuple(insert_into_canonized_sequence(list(seq), pair))
+            new_seq_small = tuple([x[1] for x in new_seq])
 
             # only do those that have not been explored yet
-            if new_seq in self.explored_seq:
+            if new_seq_small in self.explored_seq:
                 continue
             
-            self.explored_seq.add(new_seq)
+            self.explored_seq.add(new_seq_small)
 
             tokens_new = self.apply_merge_slow(tokens, pair[1])
             outputs.append(self.fit_greedy(tokens_new, T-1, new_seq))
         else:
-            outputs.append(tokens)
+            outputs.append((tokens, 1))
 
-        output = min(outputs, key=len)
+        explored_paths = sum(x[1] for x in outputs)
+
+        output = min([x[0] for x in outputs], key=len)
         output = [debug_flat_seq(x) for x in output]
-        return output
+        return output, explored_paths

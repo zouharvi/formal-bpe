@@ -76,7 +76,7 @@ class ExactBruteNormBPE:
 
     def fit_greedy(self, tokens, T, seq=tuple()):
         if T == 0:
-            return [debug_flat_seq(x) for x in tokens]
+            return [debug_flat_seq(x) for x in tokens], 1
 
         outputs = []
 
@@ -95,8 +95,10 @@ class ExactBruteNormBPE:
             tokens_new = self.apply_merge_slow(tokens, pair[1])
             outputs.append(self.fit_greedy(tokens_new, T-1, new_seq))
         else:
-            outputs.append(tokens)
+            outputs.append((tokens, 1))
+            
+        explored_paths = sum(x[1] for x in outputs)
 
-        output = min(outputs, key=len)
+        output = min([x[0] for x in outputs], key=len)
         output = [debug_flat_seq(x) for x in output]
-        return output
+        return output, explored_paths
