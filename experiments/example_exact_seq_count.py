@@ -6,6 +6,7 @@ import itertools
 import string
 import argparse
 from formal_bpe.model_exact_dyn import ExactDynBPE
+from formal_bpe.model_exact_dfs import ExactDfsBPE
 from formal_bpe.model_exact_brute_norm import ExactBruteNormBPE
 from rich.progress import track
 
@@ -17,8 +18,6 @@ args.add_argument("--merge-count", type=int, default=4)
 args = args.parse_args()
 
 alphabet = string.ascii_lowercase[:args.alphabet_size]
-
-paths = {}
 
 for example_length in range(5, args.example_length+1):
     iterator = map(
@@ -46,8 +45,8 @@ for example_length in range(5, args.example_length+1):
             example, T=args.merge_count,
         )
 
-        model = ExactDynBPE(fix_overlap=True)
-        result_dyn, paths_val_dyn = model.fit_greedy(
+        model = ExactDfsBPE(fix_overlap=True)
+        result_dyn = model.fit_greedy(
             example, T=args.merge_count,
         )
 
@@ -55,14 +54,14 @@ for example_length in range(5, args.example_length+1):
         #     print(f"Dyn {sum(times_dyn):.1f}s")
         #     print(f"Brute {sum(times_brute):.1f}s")
         #     print(f"Ratio {sum(times_dyn)/sum(times_brute):.2f}")
-        paths_local.append((paths_val_brute, paths_val_dyn))
-
         n_dyn = len(result_dyn)
         n_exact = len(result_exact)
 
         if n_dyn > n_exact:
-            print(n_dyn, n_exact)
-    paths[example_length]= paths_local
+            print("DYN", result_dyn)
+            print("EXACT", result_exact)
+            print("PROBLEM", n_dyn, n_exact)
+            exit()
 
-with open(f"computed/merge_count/merge_{args.merge_count}.json", "w") as f:
-    json.dump(paths, f)
+# with open(f"computed/merge_count/merge_{args.merge_count}.json", "w") as f:
+#     json.dump(paths, f)
