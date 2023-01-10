@@ -16,7 +16,7 @@ def compare_merges(a, b):
     if a[1][1] == b[1][0] or a[1][0] == b[1][1]:
         return True
 
-    # new addition would be smaller, don't add
+    # new addition would be smaller, continue adding
     if len(a[0]) < len(b[0]):
         return True
 

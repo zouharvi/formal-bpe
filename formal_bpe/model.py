@@ -1,7 +1,7 @@
 
 from arsenal.datastructures import LocatorMaxHeap
 from collections import defaultdict
-from faster_bpe.utils import VERBOSITY, check, pairs_in_list, UniqueList, flat_seq, debug_flat_seq
+from formal_bpe.utils import VERBOSITY, check, pairs_in_list, UniqueList, flat_seq, debug_flat_seq
 from rich.progress import track
 
 class Token:

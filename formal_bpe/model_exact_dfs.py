@@ -65,8 +65,8 @@ class ExactDFSBPE:
             pairs = self.get_word_pair_counts(tokens)
 
             for pair in pairs:
-                merges_new = copy.deepcopy(merges) + [pair]
-                tokens_new = self.apply_merge_slow(copy.deepcopy(tokens), pair)
+                merges_new = merges + [pair]
+                tokens_new = self.apply_merge_slow(tokens, pair)
                 if len(tokens_new) < len(tokens_best):
                     tokens_best = tokens_new
                     merges_best = merges_new
