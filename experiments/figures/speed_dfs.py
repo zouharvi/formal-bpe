@@ -48,24 +48,23 @@ fig = plt.figure(figsize=(4, 1.8))
 ax1 = fig.gca()
 
 xticks = [x[0] for x in values]
+yvals =     [x[1] / x[2] for x in values]
 
 ax1.plot(
-    xticks,
-    [x[1] / x[2] for x in values],
+    xticks, yvals,
     label=f"Ratio",
     alpha=0.5,
     color="black",
 )
 ax1.scatter(
-    xticks,
-    [x[1] / x[2] for x in values],
+    xticks, yvals,
     color="gray",
 )
 
 
 for x in values:
     ax1.text(
-        x[0], x[1] / x[2] + 1.1,
+        x[0], x[1] / x[2] + 2,
         s=f"{signif(x[1], 1)}s\n{signif(x[2], 1)}s",
         ha="center", va="center",
     )
@@ -73,36 +72,39 @@ for x in values:
 
 # force integer xticks
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
-ax1.yaxis.set_major_locator(MaxNLocator(integer=True, nbins=3))
-ax1.set_ylim(ax1.get_ylim()[0] - 0.1, ax1.get_ylim()[1] + 2)
+plt.yticks(range(1, 16, 4))
+ax1.set_ylim(ax1.get_ylim()[0] - 0.1, ax1.get_ylim()[1] + 3.5)
 ax1.set_xlim(ax1.get_xlim()[0] - 0.3, ax1.get_xlim()[1] + 0.3)
 ax1.set_xlabel("Merge count")
 ax1.set_ylabel("DFS to DFS+Mem\nRuntime ratio")
 
+pos_text_x = 1
+pos_text_y = max(yvals)+3
+
 ax1.text(
-    x=ax1.get_xlim()[0] + 1.2,
-    y=ax1.get_ylim()[1] - 0.4,
+    x= pos_text_x,
+    y= pos_text_y,
     s="DFS time (s)\nDFS+Mem time (s)",
     ha="left", va="top",
     font={"size": 9},
 )
 ax1.annotate(
     "",
-    xy=(4.7, 4.2), xycoords='data',
-    xytext=(2.9, 4), textcoords='data',
+    xy=(4.7, pos_text_y-0.6), xycoords='data',
+    xytext=(pos_text_x+1.2, pos_text_y-0.5), textcoords='data',
     arrowprops=dict(
         arrowstyle="->",
-        connectionstyle="angle3,angleA=20,angleB=0",
+        connectionstyle="angle3,angleA=5,angleB=-5",
         color="black",
     ),
 )
 ax1.annotate(
     "",
-    xy=(4.7, 3.7), xycoords='data',
-    xytext=(3.5, 3.6), textcoords='data',
+    xy=(4.8, pos_text_y-2), xycoords='data',
+    xytext=(pos_text_x+1.8, pos_text_y-1.9), textcoords='data',
     arrowprops=dict(
         arrowstyle="->",
-        connectionstyle="angle3,angleA=20,angleB=0",
+        connectionstyle="angle3,angleA=10,angleB=-10",
         color="black",
     ),
 )
