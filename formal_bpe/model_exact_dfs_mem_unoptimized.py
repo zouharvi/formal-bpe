@@ -36,8 +36,7 @@ class ExactDFSMemBPE:
         i = 0
         N = len(token)
         while i < N:
-            # check only the pair positions
-            if i < N - 1 and (token[i][1], token[i + 1][1]) == pair:
+            if i < N - 1 and (token[i], token[i + 1]) == pair:
                 ys_word.append(pair)
                 i += 2
             else:
@@ -75,8 +74,6 @@ class ExactDFSMemBPE:
         return max(pairs, key=pairs.__getitem__)
 
     def fit_greedy(self, tokens, T):
-        # make tokens bear merge yields
-        tokens = [(x,x) for x in tokens]
         stack = [([], tokens)]
         tokens_best = tokens
         merges_best = None
@@ -88,12 +85,11 @@ class ExactDFSMemBPE:
             pairs = self.get_word_pair_counts(tokens)
 
             for pair in pairs:
-                # reorder for speedup
-                pair = (pair[0][0]+pair[1][0], (pair[0][1], pair[1][1]))
-                # pair = (merge_signature(pair), pair)
+                # print(pair)
+                pair = (merge_signature(pair), pair)
                 if len(merges) == 0 or compare_merges(merges[-1], pair):
-                    merges_new = merges + [pair]
-                    tokens_new = self.apply_merge_slow(tokens, pair[1])
+                    merges_new = copy.deepcopy(merges) + [pair]
+                    tokens_new = self.apply_merge_slow(copy.deepcopy(tokens), pair[1])
                     if len(tokens_new) < len(tokens_best):
                         tokens_best = tokens_new
                         merges_best = merges_new

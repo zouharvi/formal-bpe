@@ -19,8 +19,10 @@ random.seed(args.seed)
 times_dyn = []
 times_brute = []
 
+CHAR_COUNT = 64
+
 example = " ".join(
-    [line[:64] for line in
+    [line[:CHAR_COUNT] for line in
     random.sample(
         open("data/CCrawl.de-en/dev.tok.en", "r").readlines(),
         k=args.line_count
