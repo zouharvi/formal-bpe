@@ -73,6 +73,7 @@ for x in values:
 
 # force integer xticks
 ax1.xaxis.set_major_locator(MaxNLocator(integer=True))
+ax1.yaxis.set_major_locator(MaxNLocator(integer=True, nbins=3))
 ax1.set_ylim(ax1.get_ylim()[0] - 0.1, ax1.get_ylim()[1] + 2)
 ax1.set_xlim(ax1.get_xlim()[0] - 0.3, ax1.get_xlim()[1] + 0.3)
 ax1.set_xlabel("Merge count")

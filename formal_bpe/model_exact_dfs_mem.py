@@ -37,7 +37,7 @@ class ExactDFSMemBPE:
         N = len(token)
         while i < N:
             # check only the pair positions
-            if i < N - 1 and (token[i][1], token[i + 1][1]) == pair:
+            if i < N - 1 and (token[i][1], token[i + 1][1]) == pair[1]:
                 ys_word.append(pair)
                 i += 2
             else:
@@ -93,7 +93,7 @@ class ExactDFSMemBPE:
                 # pair = (merge_signature(pair), pair)
                 if len(merges) == 0 or compare_merges(merges[-1], pair):
                     merges_new = merges + [pair]
-                    tokens_new = self.apply_merge_slow(tokens, pair[1])
+                    tokens_new = self.apply_merge_slow(tokens, pair)
                     if len(tokens_new) < len(tokens_best):
                         tokens_best = tokens_new
                         merges_best = merges_new
