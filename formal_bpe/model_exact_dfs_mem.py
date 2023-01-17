@@ -1,4 +1,5 @@
 from collections import defaultdict
+import collections
 import copy
 from formal_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
 from rich.progress import track
@@ -46,9 +47,10 @@ class ExactDFSMemBPE:
         return ys_word
 
     @staticmethod
-    def get_word_pair_counts(tokens_freqs):
+    def get_word_pair_counts(tokens):
         pairs = defaultdict(int)
-        for token, token_freq in tokens_freqs.values():
+        tokens_freqs = collections.Counter(zip(tokens[0:], tokens[1:]))
+        for token, token_freq in tokens_freqs.items():
             for (x, y) in pairs_in_list(token):
                 pairs[x, y] += token_freq
 
