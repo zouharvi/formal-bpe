@@ -50,7 +50,7 @@ for length in range(args.example_length_start, args.example_length + 1):
             continue
 
         start_time = time.time()
-        model = ExactBruteBPE(fix_overlap=True)
+        model = ExactDFSMemBPE(fix_overlap=True)
         result_exact = model.fit_greedy(
             example, T=args.merge_count,
         )
