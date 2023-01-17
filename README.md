@@ -1,10 +1,3 @@
-# Formal-BPE
+# BPE is almost optimal
 
-For testing, run:
-
-```
-pip3 install -r requirements.txt
-./patches/01-download_data.sh
-./patches/02-tokenize_dat.sh
-python3 ./formal_bpe/test.py
-```
+Description TODO

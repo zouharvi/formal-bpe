@@ -8,6 +8,8 @@ from arsenal.iterextras import take
 from formal_bpe.model_slow_beam import SlowBeamBPE
 from formal_bpe.model_slow_insert import SlowInsertBPE
 from formal_bpe.model_exact_brute import ExactBruteBPE
+from formal_bpe.model_exact_greedy import ExactGreedyBPE
+from formal_bpe.model_exact_dfs_mem import ExactDFSMemBPE
 from formal_bpe.model_slow import SlowBPE
 from rich.progress import track
 
@@ -30,7 +32,7 @@ for length in range(args.example_length_start, args.example_length + 1):
         "".join,
         itertools.product(alphabet, repeat=length)
     )
-    total = args.alphabet_size**length
+    total = args.alphabet_size**(length-1)
     print(f"\n{length}\n")
     for example in map(
         ''.join,
@@ -46,14 +48,14 @@ for length in range(args.example_length_start, args.example_length + 1):
         if not set(example_letters).issubset(alphabet[:len(set(example_letters))]):
             continue
 
-        model = SlowBPE(fix_overlap=True)
+        model = ExactGreedyBPE(fix_overlap=True)
         result_greedy, indecision = model.fit_greedy(
             example, T=args.merge_count,
-            debug_output=True, indecision_output=True
+            # debug_output=True, indecision_output=True
         )
-        result_greedy = result_greedy[0]
+        # result_greedy = result_greedy[0]
 
-        model = ExactBruteBPE(fix_overlap=True)
+        model = ExactDFSMemBPE(fix_overlap=True)
         result_exact = model.fit_greedy(
             example, T=args.merge_count,
         )
@@ -69,13 +71,13 @@ for length in range(args.example_length_start, args.example_length + 1):
         # print(f"Ratio: {n_greedy/ n_beam:.2f}")
 
 
-        # if min_ratio >= n_greedy / n_beam and n_beam / n_greedy != 1:
-        #     min_ratio = n_greedy/n_beam
-        if not indecision and len(result_exact) < len(result_greedy):
-            print("Example:    ", example, "indecision", indecision)
-            print(f"Greedy:      ({len(result_greedy)})", result_greedy)
-            print(f"Beam search: ({len(result_exact)})", result_exact)
-            print(f"Ratio:       {n_greedy/ n_beam:.2f}")
+        if min_ratio >= n_greedy / n_beam and n_beam / n_greedy != 1:
+            min_ratio = n_greedy/n_beam
+        # if len(result_exact) < len(result_greedy):
+            print("Example:  ", example, "indecision", indecision)
+            print(f"Greedy:   ({len(result_greedy)})", result_greedy)
+            print(f"Other:    ({len(result_exact)})", result_exact)
+            print(f"Ratio:     {n_greedy/ n_beam:.2f}")
             print("====")
 
         # assert len(result_exact) <= len(result_greedy)

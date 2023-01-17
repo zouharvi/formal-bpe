@@ -99,5 +99,6 @@ class ExactDFSMemBPE:
                         merges_best = merges_new
                     stack.append((merges_new, tokens_new))
             
-        output = [debug_flat_seq(x) for x in tokens_best]
+        # take only the proper merges
+        output = [debug_flat_seq(x[1]) for x in tokens_best]
         return output
