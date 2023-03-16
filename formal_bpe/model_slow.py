@@ -81,13 +81,15 @@ class SlowBPE:
 
         return tokens_ids, tokens_freqs
 
-    def fit_greedy(self, tokens, T, debug_output=False, progress_bar=False, indecision_output=False):
+    def fit_greedy(self, tokens, T, debug_output=False, progress_bar=False, indecision_output=False, output_merge_seq=False):
         if not self.tokenize:
             # treat the whole line as one word
             tokens = [[line.replace(" ", "▁")] for line in tokens.split("\n")]
         else:
             # split to individual words (by spaces)
             tokens = [line.replace(" ", " ▁").split(" ") for line in tokens.split("\n")]
+
+        merge_seq = []
         
         tokens_ids, tokens_freqs = self.token_dictionary(tokens)
         indecision = False
@@ -104,6 +106,7 @@ class SlowBPE:
 
             # this mutates tokens_freqs
             self.apply_merge_slow(tokens_freqs, pair)
+            merge_seq.append(pair)
 
         if debug_output:
             flattener = debug_flat_seq
@@ -117,5 +120,7 @@ class SlowBPE:
 
         if indecision_output:
             return output, indecision
+        elif output_merge_seq:
+            return output, merge_seq
         else:
             return output

@@ -76,7 +76,7 @@ class ExactDFSMemBPE:
     def top_pair(pairs):
         return max(pairs, key=pairs.__getitem__)
 
-    def fit_greedy(self, tokens, T):
+    def fit_greedy(self, tokens, T, output_merge_seq=False):
         # make tokens bear merge yields
         tokens = [(x,x) for x in tokens]
         stack = [([], tokens)]
@@ -103,4 +103,8 @@ class ExactDFSMemBPE:
             
         # take only the proper merges
         output = [debug_flat_seq(x[1]) for x in tokens_best]
-        return output
+
+        if output_merge_seq:
+            return output, merges_best
+        else:
+            return output

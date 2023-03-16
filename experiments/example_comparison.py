@@ -25,8 +25,10 @@ args = args.parse_args()
 if args.example_length_start is None:
     args.example_length_start = args.example_length
 
-min_ratio = 1
+max_diff = 1
 alphabet = string.ascii_lowercase[:args.alphabet_size]
+
+max_diff = 1
 
 for length in range(args.example_length_start, args.example_length + 1):
     iterator = map(
@@ -49,20 +51,19 @@ for length in range(args.example_length_start, args.example_length + 1):
         if not set(example_letters).issubset(alphabet[:len(set(example_letters))]):
             continue
 
-        model = SlowBPEYield(fix_overlap=False)
-        result_greedy, _ = model.fit_greedy(
+        model = ExactDFSMemBPE(fix_overlap=False)
+        result_opt = model.fit_greedy(
             example, T=args.merge_count,
-            debug_output=True, indecision_output=True
         )
 
         model = SlowBPE(fix_overlap=False)
-        result_exact,_  = model.fit_greedy(
+        result_greedy,_  = model.fit_greedy(
             example, T=args.merge_count,
             debug_output=True, indecision_output=True
         )
 
+        result_opt = result_opt
         result_greedy = result_greedy[0]
-        result_exact = result_exact[0]
 
         # print(result_exact, result_greedy)
         # model = SlowBeamBPE()
@@ -71,19 +72,20 @@ for length in range(args.example_length_start, args.example_length + 1):
         #     B=args.beam_size
         # )
 
-        n_beam = len(example) - len(result_exact)
         n_greedy = len(example) - len(result_greedy)
+        n_opt = len(example) - len(result_opt)
         # print(f"Ratio: {n_greedy/ n_beam:.2f}")
 
 
         # if min_ratio >= n_greedy / n_beam and n_beam / n_greedy != 1:
         #     min_ratio = n_greedy/n_beam
-        if len(result_exact) != len(result_greedy):
+        if len(result_greedy) != len(result_opt) and n_opt-n_greedy > max_diff:
+            max_diff = n_opt-n_greedy
             print("Example:  ", example)
             # print("Example:  ", example, "indecision", indecision)
-            print(f"Greedy:   ({len(result_greedy)})", result_greedy)
-            print(f"Other:    ({len(result_exact)})", result_exact)
-            print(f"Ratio:     {n_greedy/ n_beam:.2f}")
+            print(f"Opt:     ({len(result_opt)})", result_opt)
+            print(f"Greedy:  ({len(result_greedy)})", result_greedy)
+            print(f"Diff:     {n_opt-n_greedy:.2f}")
             print("====")
 
         # assert len(result_exact) <= len(result_greedy)
