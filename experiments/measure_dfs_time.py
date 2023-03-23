@@ -29,6 +29,8 @@ example = " ".join(
     )]
 ).replace("\n", "")
 print(example)
+# print(len(example))
+# exit()
 
 
 def compute_times():
