@@ -35,7 +35,7 @@ for example in EXAMPLES:
     example_new = example_new[0]
     
     x = example
-    for merge in merges_new + merges_opt:
+    for merge in merges_new[:-1] + merges_opt:
         x = ExactDFSBPE.apply_merge_slow(x, merge)
     util_new = len(example) - len(example_new)
     util_join = len(example) - len(x)
