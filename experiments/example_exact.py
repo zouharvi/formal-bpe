@@ -34,7 +34,7 @@ times_dyn.append(time.time() - time_start)
 print("DFS")
 time_start = time.time()
 model = ExactDFSBPE(fix_overlap=True)
-result_dfs = model.fit_greedy(
+result_dfs, merges_dfs = model.fit_greedy(
     example, T=args.merge_count,
 )
 times_brute.append(time.time() - time_start)

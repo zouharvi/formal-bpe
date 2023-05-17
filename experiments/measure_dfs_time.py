@@ -45,7 +45,7 @@ def compute_times():
     print("DFS")
     time_start = time.time()
     model = ExactDFSBPE(fix_overlap=True)
-    result_dfs = model.fit_greedy(
+    result_dfs, merges_dfs = model.fit_greedy(
         example, T=args.merge_count,
     )
     time_dfs = time.time() - time_start

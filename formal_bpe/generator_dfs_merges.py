@@ -1,9 +1,7 @@
 from collections import defaultdict
-import copy
 from formal_bpe.utils import pairs_in_list, flat_seq, debug_flat_seq
-from rich.progress import track
 
-class ExactDFSBPE:
+class GeneratorDFSMerges:
     def __init__(self, fix_overlap=False):
         if fix_overlap:
             self.get_word_pair_counts = self.get_word_pair_counts_fix_overlap
@@ -53,10 +51,8 @@ class ExactDFSBPE:
     def top_pair(pairs):
         return max(pairs, key=pairs.__getitem__)
 
-    def fit_greedy(self, tokens, T):
+    def yield_all_mergeseq(self, tokens, T):
         stack = [([], tokens)]
-        tokens_best = tokens
-        merges_best = None
 
         while len(stack) != 0:
             merges, tokens = stack.pop()
@@ -67,10 +63,11 @@ class ExactDFSBPE:
             for pair in pairs:
                 merges_new = merges + [pair]
                 tokens_new = self.apply_merge_slow(tokens, pair)
-                if len(tokens_new) < len(tokens_best):
-                    tokens_best = tokens_new
-                    merges_best = merges_new
                 stack.append((merges_new, tokens_new))
-            
+                
+                # yield all "final" seqs
+                if len(merges_new) == T:
+                    yield (merges_new, tokens_new)
+        return
         output = [debug_flat_seq(x) for x in tokens_best]
         return output, merges_best

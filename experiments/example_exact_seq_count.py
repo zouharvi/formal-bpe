@@ -5,8 +5,7 @@ import orderedset
 import itertools
 import string
 import argparse
-from formal_bpe.model_exact_dyn import ExactDynBPE
-from formal_bpe.model_exact_dfs import ExactDfsBPE
+from formal_bpe.model_exact_dfs import ExactDFSBPE
 from formal_bpe.model_exact_brute_norm import ExactBruteNormBPE
 from rich.progress import track
 
@@ -45,8 +44,8 @@ for example_length in range(5, args.example_length+1):
             example, T=args.merge_count,
         )
 
-        model = ExactDfsBPE(fix_overlap=True)
-        result_dyn = model.fit_greedy(
+        model = ExactDFSBPE(fix_overlap=True)
+        result_dfs, merges_dfs = model.fit_greedy(
             example, T=args.merge_count,
         )
 
@@ -54,11 +53,11 @@ for example_length in range(5, args.example_length+1):
         #     print(f"Dyn {sum(times_dyn):.1f}s")
         #     print(f"Brute {sum(times_brute):.1f}s")
         #     print(f"Ratio {sum(times_dyn)/sum(times_brute):.2f}")
-        n_dyn = len(result_dyn)
+        n_dyn = len(result_dfs)
         n_exact = len(result_exact)
 
         if n_dyn > n_exact:
-            print("DYN", result_dyn)
+            print("DYN", result_dfs)
             print("EXACT", result_exact)
             print("PROBLEM", n_dyn, n_exact)
             exit()

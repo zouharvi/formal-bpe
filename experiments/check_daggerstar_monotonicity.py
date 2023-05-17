@@ -1,10 +1,8 @@
 #!/usr/bin/env python3
 
-import orderedset
 import itertools
 import string
 import argparse
-from formal_bpe.model_exact_dfs import ExactDFSBPE
 from formal_bpe.model_exact_dfs_mem import ExactDFSMemBPE
 from formal_bpe.model_exact_dyn import ExactDynBPE
 from formal_bpe.model_slow import SlowBPE
