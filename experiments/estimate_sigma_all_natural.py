@@ -6,17 +6,21 @@ import itertools
 import string
 from formal_bpe.model_exact_dfs import ExactDFSBPE
 from formal_bpe.generator_dfs_merges import GeneratorDFSMerges
+import random
 
 args = argparse.ArgumentParser()
 args.add_argument("--merge-count", type=int, default=2)
 args = args.parse_args()
 
 sigma = 0
-EXAMPLES = [
-    "the expeditious russet-hued vulpine creature elegantly leaps over the languid, lackadaisical canine companion",
-    "the quick brown fox jumped over the lazy dog",
-    "If Fantasy Hockey actually lived up to its name, every team would have Henrik Lundqvist and Joffrey Lupul on it I have a moral code, but I haven't figured out how to read it yet We say we are walking the dog, but the dog always leads A tagline for an airline: Take the High Road INjuries always keep you OUT of things. Visticula If you wake up with a giant zit, you are really facing your fears when you look in the mirror",
-]
+random.seed(0)
+EXAMPLES = random.sample(open("data/CCrawl.de-en/dev.tok.en", "r").readlines(), k=20)
+# EXAMPLES = [
+#     "the expeditious russet-hued vulpine creature elegantly leaps over the languid, lackadaisical canine companion",
+#     "the quick brown fox jumped over the lazy dog",
+#     "If Fantasy Hockey actually lived up to its name, every team would have Henrik Lundqvist and Joffrey Lupul on it I have a moral code, but I haven't figured out how to read it yet We say we are walking the dog, but the dog always leads A tagline for an airline: Take the High Road INjuries always keep you OUT of things. Visticula If you wake up with a giant zit, you are really facing your fears when you look in the mirror",
+# ]
+print(EXAMPLES)
 for example in EXAMPLES:
     model_opt = ExactDFSBPE(fix_overlap=True)
     model_gen = GeneratorDFSMerges(fix_overlap=True)

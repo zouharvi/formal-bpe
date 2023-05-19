@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import random
 import tqdm
 import argparse
 import itertools
@@ -14,12 +15,14 @@ args.add_argument("--example-length", type=int, default=6)
 args = args.parse_args()
 
 sigma = 0
-EXAMPLES = [
-    "the expeditious russet-hued vulpine creature elegantly leaps over the languid, lackadaisical canine companion",
-    "the quick brown fox jumped over the lazy dog",
-    "If Fantasy Hockey actually lived up to its name, every team would have Henrik Lundqvist and Joffrey Lupul on it I have a moral code, but I haven't figured out how to read it yet We say we are walking the dog, but the dog always leads A tagline for an airline: Take the High Road INjuries always keep you OUT of things. Visticula If you wake up with a giant zit, you are really facing your fears when you look in the mirror",
-    'Are there Out-of-Stock photos? Gafuffle North America should be called Russia since people are always moving so fast. Gralitica You should "listen to my mixtape" (check out the rest of my portfolio)',
-]
+random.seed(0)
+EXAMPLES = random.sample(open("data/CCrawl.de-en/dev.tok.en", "r").readlines(), k=200)
+# EXAMPLES = [
+#     "the expeditious russet-hued vulpine creature elegantly leaps over the languid, lackadaisical canine companion",
+#     "the quick brown fox jumped over the lazy dog",
+#     "If Fantasy Hockey actually lived up to its name, every team would have Henrik Lundqvist and Joffrey Lupul on it I have a moral code, but I haven't figured out how to read it yet We say we are walking the dog, but the dog always leads A tagline for an airline: Take the High Road INjuries always keep you OUT of things. Visticula If you wake up with a giant zit, you are really facing your fears when you look in the mirror",
+#     'Are there Out-of-Stock photos? Gafuffle North America should be called Russia since people are always moving so fast. Gralitica You should "listen to my mixtape" (check out the rest of my portfolio)',
+# ]
 for example in EXAMPLES:
     model_opt = ExactDFSBPE(fix_overlap=True)
     model_gen = SlowBPE(fix_overlap=True)
