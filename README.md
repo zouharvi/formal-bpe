@@ -1,3 +1,4 @@
-# BPE is almost optimal
+# A Formal Perspective on Byte-Pair Encoding
 
-Description TODO
+- A paper accepted at ACL 2023
+- Rest TODO
