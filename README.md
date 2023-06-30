@@ -1,6 +1,6 @@
 # A Formal Perspective on Byte-Pair Encoding
 
-Description TODO. Read the [paper here](https://arxiv.org/abs/2306.16837). Watch a [3 min video](https://www.youtube.com/watch?v=aB7oaS0rlvI) or take a loot [at the poster](meta/poster.pdf).
+Read the [paper here](https://arxiv.org/abs/2306.16837), watch a [3 min video](https://www.youtube.com/watch?v=aB7oaS0rlvI) or take a loot [at the poster](meta/poster.pdf).
 
 Currently cite as:
 ```
