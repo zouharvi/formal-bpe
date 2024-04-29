@@ -18,7 +18,7 @@ Cite as:
 }
 ```
 
+## YouTube Presentations
 
-[![Paper video presentation](https://img.youtube.com/vi/yeEZpf4BlDA/0.jpg)](https://www.youtube.com/watch?v=yeEZpf4BlDA)
-
-[![Paper video presentation](https://img.youtube.com/vi/aB7oaS0rlvI/0.jpg)](https://www.youtube.com/watch?v=aB7oaS0rlvI)
+[<img src="https://img.youtube.com/vi/yeEZpf4BlDA/maxresdefault.jpg" width=400px>](https://www.youtube.com/watch?v=yeEZpf4BlDA)
+[<img src="https://img.youtube.com/vi/aB7oaS0rlvI/maxresdefault.jpg" width=400px>](https://www.youtube.com/watch?v=aB7oaS0rlvI)
